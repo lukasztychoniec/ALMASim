@@ -52,6 +52,8 @@ def twodgaussian(inpars, circle=0, rotate=1, vheight=1, shape=None):
         height = float(height)
     else:
         height = float(0)
+
+    #### INVERSION OF X Y WHY??
     amplitude, center_y, center_x = inpars.pop(0),inpars.pop(0),inpars.pop(0)
     amplitude = float(amplitude)
     center_x = float(center_x)
@@ -89,6 +91,7 @@ def twodgaussian(inpars, circle=0, rotate=1, vheight=1, shape=None):
             -(((rcen_x-xp)/width_x)**2+
             ((rcen_y-yp)/width_y)**2)/2.)
         return g
+    
     if shape is not None:
         return rotgauss(*numpy.indices(shape))
     else:
@@ -108,10 +111,11 @@ with open(directory+'/gauss_cubes.csv','w') as file:
 	print ('#file,amplitude,center_x,center_y,width_x,width_y,rot_angle,line_peak,line_fwhm,line_pos,sum_peak')
 
 	CompDictionary = {}
-	LineDict = {}
+	
 	#loop over all simulations
 	#for i in range(99):
 	for i in range(1000):
+        LineDict = {}
 		number_of_components = random.randint(2,5)
 			#loop over components
 

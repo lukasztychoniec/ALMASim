@@ -4,6 +4,10 @@ Utility Functions
 import numpy as np
 from math import pi
 import random
+from astropy.io import fits
+import pandas as pd
+import os
+from tqdm import tqdm
 
 
 def gaussian(x, amp, cen, fwhm):
@@ -48,7 +52,9 @@ def make_cube(i, amps, xyposs, fwhms, angles,
         fwhm_y = np.random.choice(fwhms)
         pa = np.random.choice(angles)
         images.append(twodgaussian(amp, pos_x, pos_y, fwhm_x, fwhm_y, pa, idxs))
-        params.append([i, amp, pos_x, pos_y, fwhm_x, fwhm_y, pa, line_amp, line_fwhm, line_cent])
+        params.append([int(i), round(amp, 2), round(pos_x, 2), round(pos_y, 2), 
+                       round(fwhm_x, 2), round(fwhm_y, 2), round(pa, 2), round(line_amp, 2), 
+                       round(line_fwhm, 2), round(line_cent, 2)])
     image = np.sum(images, axis=0)
     cube = np.ones([128, 350, 350]) * image
     for z in range(cube.shape[0]):
@@ -58,4 +64,29 @@ def make_cube(i, amps, xyposs, fwhms, angles,
 
 
 
-        
+def generate_cubes(data_dir, csv_name, n):
+    columns = ['ID', 'amplitude', 'x', 'y', 'width_x', 
+               'width_y', 'angle', 'line_peak', 'line_fwhm', 'z']
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
+    amps = np.linspace(1.,5.,num=100).astype(np.float)
+    xyposs = np.arange(100,250).astype(np.float)
+    fwhms = np.linspace(2.,8.,num=100).astype(np.float)
+    angles = np.linspace(0,90,num=900).astype(np.float)
+    line_centres = np.linspace(20, 100, num=100).astype(np.float)
+    line_fwhms = np.linspace(3, 10, num=100).astype(np.float)
+    idxs = np.indices([350, 350])
+    z_idxs = np.linspace(0, 128, 128)
+    parameters = []
+    print('Generating Cubes....')
+    for i in tqdm(range(n)):
+        cube, params = make_cube(i, amps, xyposs, fwhms, angles, line_centres, line_fwhms, idxs, z_idxs)
+        hdu = fits.PrimaryHDU(data=cube)
+        hdu.writeto(data_dir + '/gauss_cube_' + str(i) + '.fits', overwrite=True)
+        for par in params:
+            parameters.append(par)
+    parameters = np.array(parameters)
+    df = pd.DataFrame(parameters, columns=columns)
+    df.to_csv(os.path.join(data_dir, csv_name), index=False)
+    print('Finished!')
+            

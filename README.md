@@ -8,3 +8,10 @@ The pipeline so far was:
 
 What we need is a single script to do it all, so perhaps we want a loop that would produce and update catalog entry after each simalma() run.
 
+
+casa --pipeline --nologger --nologfile --nogui -c "execfile("pythonfile.py")"
+
+To install joblib
+subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', 'joblib']) 
+Generation of 2 cubes sequentially 16 cores:  137 seconds
+Generation of 2 cubes in parallel 16 cores:  137 seconds

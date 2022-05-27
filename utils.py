@@ -90,3 +90,32 @@ def generate_cubes(data_dir, csv_name, n):
     df.to_csv(os.path.join(data_dir, csv_name), index=False)
     print('Finished!')
             
+def generate_sims(input_dir, output_dir, i):
+    filename = os.path.join(input_dir, "gauss_cube_{}.fits".format(str(i)))
+    project = "gauss_cube_sim_" + str(i)
+    simalma(
+        project=project,
+        dryrun=False,
+        skymodel=filename,
+        inbright="0.001Jy/pix",
+        indirection="J2000 03h59m59.96s -34d59m59.50s",
+        incell="0.1arcsec",
+        incenter="230GHz",
+        inwidth="10MHz",
+        antennalist=["alma.cycle5.3.cfg"],
+        totaltime="720s",
+        pwv=0.8,
+        niter=0,
+        overwrite=True,
+        verbose=False
+    )
+    exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.noisy.image', 
+               fitsimage=project+'/gauss_cube_sim_'+str(i)+'.dirty.fits')
+    exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.skymodel', 
+               fitsimage=project+'/gauss_cube_sim_'+str(i)+'.skymodel.fits')
+
+    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
+    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
+    os.system('rm -r {}'.format(project))
+    os.system('rm *.last')
+

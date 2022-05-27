@@ -3,8 +3,12 @@ Generating ALMA simulations for the ML imaging purposes
 
 Instructions:
 
-1. git pull https://github.com/lukasztychoniec/ALMASim.git
+#### If you have never cloned the repository
+1. git clone https://github.com/lukasztychoniec/ALMASim.git
 2. cd ALMASim
+#### Otherwise
+1. cd ALMASim
+2. git pull
 #### Generate 10 model cubes in the models folder
 3. python generate_models.py models params.csv 10
 

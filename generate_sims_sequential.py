@@ -49,7 +49,7 @@ output_dir = 'sims'
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 indexes = list(np.arange(10))
-for i in range(indexes):
+for i in indexes:
     generate_sims(input_dir, output_dir, i)
 
 print(f'Execution took {time.time() - start} seconds')

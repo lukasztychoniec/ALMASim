@@ -34,7 +34,7 @@ def generate_sims(i, input_dir, output_dir):
     os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
     os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
     os.system('rm -r {}'.format(project))
-    os.system('rm *.log')
+    
 
 
 #parser =argparse.ArgumentParser()
@@ -58,7 +58,7 @@ indexes = list(np.arange(n))
 print('starting')
 pool.map(partial(generate_sims, input_dir=input_dir, output_dir=output_dir), indexes)
 print(f'Execution took {time.time() - start} seconds')
-
+os.system('rm *.log')
 
 
 #Parallel(n_jobs=2)(

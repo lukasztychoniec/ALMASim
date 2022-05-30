@@ -49,11 +49,12 @@ start = time.time()
 #output_dir = args.output_dir
 input_dir = "models"
 output_dir = "sims"
+processes = 24
 n = len(list(os.listdir(input_dir)))
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 #pool = multiprocessing.Pool()
-pool = multiprocessing.Pool()
+pool = multiprocessing.Pool(processes=processes)
 indexes = list(np.arange(n))
 print('starting')
 pool.map(partial(generate_sims, input_dir=input_dir, output_dir=output_dir), indexes)

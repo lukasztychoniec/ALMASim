@@ -37,16 +37,18 @@ def generate_sims(i, input_dir, output_dir):
     os.system('rm *.last')
 
 
-parser =argparse.ArgumentParser()
-parser.add_argument("input_dir", type=str, 
-        help='The directory in wich the simulated model cubes are stored;')
-parser.add_argument("output_dir", type=str, 
-        help='The directory in wich to store the simulated dirty cubes and corresponding skymodels;')
-args = parser.parse_args()
+#parser =argparse.ArgumentParser()
+#parser.add_argument("input_dir", type=str, 
+#        help='The directory in wich the simulated model cubes are stored;')
+#parser.add_argument("output_dir", type=str, 
+#        help='The directory in wich to store the simulated dirty cubes and corresponding skymodels;')
+#args = parser.parse_args()
 
 start = time.time()
-input_dir = args.input_dir
-output_dir = args.output_dir
+#input_dir = args.input_dir
+#output_dir = args.output_dir
+input_dir = "models"
+output_dir = "sims"
 n = len(list(os.listdir(input_dir)))
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)

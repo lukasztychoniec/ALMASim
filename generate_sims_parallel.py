@@ -34,7 +34,7 @@ def generate_sims(i, input_dir, output_dir):
     os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
     os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
     os.system('rm -r {}'.format(project))
-    #os.system('rm *.last')
+    os.system('rm *.log')
 
 
 #parser =argparse.ArgumentParser()

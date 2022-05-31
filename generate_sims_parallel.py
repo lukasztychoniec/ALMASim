@@ -48,7 +48,7 @@ start = time.time()
 input_dir = "models"
 output_dir = "sims"
 processes = 24
-n = len(list(os.listdir(input_dir)))    
+n = len(list(os.listdir(input_dir))) - 1
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 #pool = multiprocessing.Pool()

@@ -38,9 +38,9 @@ def threedgaussian(amplitude, spind, chan, center_x, center_y, width_x, width_y,
     xp = idxs[0] * np.cos(angle) - idxs[1] * np.sin(angle)
     yp = idxs[0] * np.sin(angle) + idxs[1] * np.cos(angle)
     v1 = 230e9
-    v2 = v1+100e6*chan
+    v2 = v1+10e6*chan
 
-    g = (np.log10(amplitude) - (spind) * np.log10(v1/v2))*np.exp(-(((rcen_x-xp)/width_x)**2+((rcen_y-yp)/width_y)**2)/2.)
+    g = (np.log10(amplitude) + (spind) * np.log10(v1/v2))*np.exp(-(((rcen_x-xp)/width_x)**2+((rcen_y-yp)/width_y)**2)/2.)
     return g
 
 

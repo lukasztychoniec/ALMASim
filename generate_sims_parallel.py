@@ -61,11 +61,11 @@ if __name__ == '__main__':
     print(f'Execution took {time.time() - start} seconds')
     os.system('rm *.log')
 
-for i in range(n):
-    project = "gauss_cube_sim_" + str(i)
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
-    os.system('rm -r {}'.format(project))
+    for i in range(n):
+        project = "gauss_cube_sim_" + str(i)
+        os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
+        os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
+        os.system('rm -r {}'.format(project))
 
 
 #Parallel(n_jobs=2)(

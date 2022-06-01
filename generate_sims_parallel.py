@@ -30,9 +30,7 @@ def generate_sims(i, input_dir, output_dir):
                fitsimage=project+'/gauss_cube_sim_'+str(i)+'.dirty.fits')
     exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.skymodel', 
                fitsimage=project+'/gauss_cube_sim_'+str(i)+'.skymodel.fits')
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
-    os.system('rm -r {}'.format(project))
+    
     
     
 
@@ -49,20 +47,20 @@ start = time.time()
 #output_dir = args.output_dir
 input_dir = "models"
 output_dir = "sims"
-processes = 24
+processes = 16
 n = len(list(os.listdir(input_dir))) - 1
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 #pool = multiprocessing.Pool()
-pool = multiprocessing.Pool(processes=processes)
+#pool = multiprocessing.Pool(processes=processes)
 #indexes = list(np.arange(n))
-indexes = [0]
-print('starting')
-pool.map(partial(generate_sims, input_dir=input_dir, output_dir=output_dir), indexes)
-pool.close()
-pool.join()
-print(f'Execution took {time.time() - start} seconds')
-os.system('rm *.log')
+#indexes = [0]
+#print('starting')
+#pool.map(partial(generate_sims, input_dir=input_dir, output_dir=output_dir), indexes)
+#pool.close()
+#pool.join()
+#print(f'Execution took {time.time() - start} seconds')
+#os.system('rm *.log')
 #for i in range(n):
 #    project = "gauss_cube_sim_" + str(i)
     
@@ -71,3 +69,16 @@ os.system('rm *.log')
 #Parallel(n_jobs=2)(
 #   delayed(lambda i: generate_sims(input_dir, output_dir, i))
 #    (i) for i in range(2))
+indexes = list(np.arange(n))
+indexes_chunks = np.split(indexes, 16)
+for indexes in indexes_chunks:
+    indexes = list(indexes)
+    pool = multiprocessing.Pool(processes=processes)
+    pool.map(partial(generate_sims, input_dir=input_dir, output_dir=output_dir), indexes)
+    pool.close()
+    pool.join()
+    for index in indexes:
+        project = "gauss_cube_sim_" + str(index)
+        os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
+        os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
+        os.system('rm -r {}'.format(project))

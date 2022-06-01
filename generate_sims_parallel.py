@@ -69,7 +69,7 @@ if not os.path.exists(output_dir):
 #Parallel(n_jobs=2)(
 #   delayed(lambda i: generate_sims(input_dir, output_dir, i))
 #    (i) for i in range(2))
-indexes = list(np.arange(n))
+indexes = np.arange(n)
 indexes_chunks = np.split(indexes, 16)
 for indexes in indexes_chunks:
     indexes = list(indexes)

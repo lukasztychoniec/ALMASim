@@ -54,7 +54,7 @@ n = len(list(os.listdir(input_dir))) - 1
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 #pool = multiprocessing.Pool()
-pool = multiprocessing.get_contex("spawn").Pool(processes=processes)
+pool = multiprocessing.Pool(processes=processes)
 #indexes = list(np.arange(n))
 indexes = [0]
 print('starting')

@@ -11,14 +11,14 @@ Instructions:
 4 Clone the GitHub repository:
 <pre><code>git clone https://github.com/lukasztychoniec/ALMASim.git</pre></code>
 5 Make sure that the required libraries are installed, we are supposing to be on a centos system:
-<pre><code>
-    sudo yum install ImageMagick*
-    sudo yum install xorg-x11-server-Xvfb
-    sudo yum install compat-libgfortran-48
-    sudo yum install libnsl
-    sudo yum install openmpi-devel
-    sudo yum install mpich-devel
-</pre><code>
+
+<pre><code>sudo yum install ImageMagick*</code></pre>
+<pre><code>sudo yum install xorg-x11-server-Xvfb</code></pre>
+<pre><code>sudo yum install compat-libgfortran-48</code></pre>
+<pre><code>sudo yum install libnsl</code></pre>
+<pre><code>sudo yum install openmpi-devel</code></pre>
+<pre><code>sudo yum install mpich-devel</code></pre>
+
 6 Install the required python libraries
 <pre><code>pip install -r requirements.txt</code></pre>
 7 Generate the sky model cubes:

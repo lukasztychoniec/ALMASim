@@ -69,7 +69,7 @@ def make_cube(i, amps, xyposs, fwhms, angles,
                        round(fwhm_x, 2), round(fwhm_y, 2), round(pa, 2), round(line_amp, 2), 
                        round(line_fwhm, 2), round(line_cent, 2)])
     image = np.sum(images, axis=0)
-    cube = np.ones([128, 350, 350]) * image
+    cube = np.ones([128, 360, 360]) * image
     for z in range(cube.shape[0]):
         for l in range(len(lines)):
             cube[z, :, :] += lines[l][z] * images[l]
@@ -80,10 +80,8 @@ def make_cube(i, amps, xyposs, fwhms, angles,
 def make_spind_cube(i, amps, xyposs, fwhms, angles,
               line_centres, line_fwhms, spectral_indexes, idxs, z_idxs):
     number_of_components = random.randint(2,5)
-    lines = []
-    images = []
     params = []
-    cube = np.ones([128, 350, 350])
+    cube = np.ones([128, 360, 360])
 
     for _ in range(number_of_components):
         # Random choice of line parameters
@@ -108,8 +106,6 @@ def make_spind_cube(i, amps, xyposs, fwhms, angles,
                        round(fwhm_x, 2), round(fwhm_y, 2), round(pa, 2), round(line_amp, 2),
                        round(line_fwhm, 2), round(line_cent, 2), round(spidx,2)])
 
-    image = np.sum(images, axis=0)
-
     return cube, params
 
 
@@ -126,7 +122,7 @@ def generate_cubes(data_dir, csv_name, n):
     line_centres = np.linspace(20, 100, num=100).astype(np.float)
     line_fwhms = np.linspace(3, 10, num=100).astype(np.float)
     spectral_indexes = np.linspace(-2, 2, num=100).astype(np.float)
-    idxs = np.indices([350, 350])
+    idxs = np.indices([360, 360])
     z_idxs = np.linspace(0, 128, 128)
     parameters = []
     print('Generating Cubes....')
@@ -144,32 +140,3 @@ def generate_cubes(data_dir, csv_name, n):
     print('Finished!')
 
             
-def generate_sims(input_dir, output_dir, i):
-    filename = os.path.join(input_dir, "gauss_cube_{}.fits".format(str(i)))
-    project = "gauss_cube_sim_" + str(i)
-    simalma(
-        project=project,
-        dryrun=False,
-        skymodel=filename,
-        inbright="0.001Jy/pix",
-        indirection="J2000 03h59m59.96s -34d59m59.50s",
-        incell="0.1arcsec",
-        incenter="230GHz",
-        inwidth="10MHz",
-        antennalist=["alma.cycle5.3.cfg"],
-        totaltime="720s",
-        pwv=0.8,
-        niter=0,
-        overwrite=True,
-        verbose=False
-    )
-    exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.noisy.image', 
-               fitsimage=project+'/gauss_cube_sim_'+str(i)+'.dirty.fits')
-    exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.skymodel', 
-               fitsimage=project+'/gauss_cube_sim_'+str(i)+'.skymodel.fits')
-
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
-    os.system('rm -r {}'.format(project))
-    os.system('rm *.last')
-

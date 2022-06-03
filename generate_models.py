@@ -86,6 +86,6 @@ if __name__ == '__main__':
     files = glob.glob(files)
     df = pd.concat(map(pd.read_csv, files), ignore_index=True)
     os.system("rm -r {}/*.csv".format(data_dir))
-    df.sort_values(by=["ID"])
+    df = df.sort_values(by="ID")
     df.to_csv(os.path.join(data_dir, csv_name), index=False)
     print(f'Execution took {time.time() - start} seconds')

@@ -4,7 +4,7 @@ Generating ALMA simulations for the ML imaging purposes
 Instructions:
 
 1 Create a conda environment:
-<pre><code>conda create --name casa6.5 python=3.8 </code><pre>
+<pre><code>conda create --name casa6.5 python=3.8 </code></pre>
 2 Activate it:
 <pre><code>conda activate casa6.5</code></pre>
 3 Move to the folder where you want to store the results

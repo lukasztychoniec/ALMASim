@@ -7,10 +7,13 @@ import numpy as np
 from joblib import Parallel, delayed
 import multiprocessing
 from casatasks import simalma, exportfits
+from tqdm import tqdm
 
-def generate_sims(i, input_dir, output_dir):
-    filename = os.path.join(input_dir, "gauss_cube_{}.fits".format(str(i)))
-    project = "gauss_cube_sim_" + str(i)
+def generate_sims(i, input_dir, output_dir, n_lead):
+    idx = str(i).zfill(n_lead)
+    filename = os.path.join(input_dir, "gauss_cube_" + idx + ".fits")
+    project = "gauss_cube_sim_" + idx
+    
     simalma(
         project=project,
         dryrun=False,
@@ -25,17 +28,18 @@ def generate_sims(i, input_dir, output_dir):
         mapsize="0",
         pwv=0.8,
         niter=0,
-        imsize=0,
+        imsize=[360, 360],
         overwrite=True,
-        verbose=False
+        verbose=True
     )
-    exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.noisy.image', 
-               fitsimage=project+'/gauss_cube_sim_'+str(i)+'.dirty.fits')
-    exportfits(imagename=project+'/gauss_cube_sim_'+str(i)+'.alma.cycle5.3.skymodel', 
-               fitsimage=project+'/gauss_cube_sim_'+str(i)+'.skymodel.fits')
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.dirty.fits {}/'.format(output_dir))
-    os.system('cp ' + project + '/gauss_cube_sim_'+str(i)+'.skymodel.fits {}/'.format(output_dir))
+    exportfits(imagename=project+'/gauss_cube_sim_'+ idx +'.alma.cycle5.3.noisy.image', 
+               fitsimage=project+'/gauss_cube_sim_'+ idx +'.dirty.fits')
+    exportfits(imagename=project+'/gauss_cube_sim_'+ idx +'.alma.cycle5.3.skymodel', 
+               fitsimage=project+'/gauss_cube_sim_'+ idx +'.skymodel.fits')
+    os.system('cp ' + project + '/gauss_cube_sim_'+ idx +'.dirty.fits {}/'.format(output_dir))
+    os.system('cp ' + project + '/gauss_cube_sim_'+ idx +'.skymodel.fits {}/'.format(output_dir))
     os.system('rm -r {}'.format(project))
+    #os.system('rm -r IMAGING*')
 
 
 parser =argparse.ArgumentParser()
@@ -49,13 +53,14 @@ output_dir = args.output_dir
 
 n_cores = multiprocessing.cpu_count() // 4
 n = len(list(os.listdir(input_dir))) - 1
+n_lead = len(str(n))
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
 
 if __name__ == "__main__":
     start = time.time()
-    Parallel(n_cores)(delayed(generate_sims)(i, input_dir, output_dir) for i in range(n))
+    Parallel(n_cores)(delayed(generate_sims)(i, input_dir, output_dir, n_lead) for i in tqdm(range(n)))
     print(f'Execution took {time.time() - start} seconds')
     os.system('rm -r *.log')
     

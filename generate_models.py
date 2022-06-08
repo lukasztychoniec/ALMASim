@@ -17,7 +17,7 @@ def make_cube(i, data_dir, amps, xyposs, fwhms, angles,
               idxs, z_idxs):
     number_of_components = random.randint(2,5)
     params = []
-    cube = np.ones([128, 360, 360])
+    cube = np.zeros([128, 360, 360])
     columns = ['ID', 'amplitude', 'x', 'y', 'width_x', 
                'width_y', 'angle', 'line_peak', 'line_fwhm', 'z', 'sp_idx']
     for _ in range(number_of_components):
@@ -42,7 +42,7 @@ def make_cube(i, data_dir, amps, xyposs, fwhms, angles,
         params.append([int(i), round(amp, 2), round(pos_x, 2), round(pos_y, 2),
                        round(fwhm_x, 2), round(fwhm_y, 2), round(pa, 2), round(line_amp, 2),
                        round(line_fwhm, 2), round(line_cent, 2), round(spidx,2)])
-    hdu = fits.PrimaryHDU(data=cube)
+    hdu = fits.PrimaryHDU(data=cube.astype(np.float32))
     hdu.writeto(data_dir + '/gauss_cube_' + str(i) + '.fits', overwrite=True)
     params = np.array(params)
     df = pd.DataFrame(params, columns=columns)
@@ -53,7 +53,7 @@ def make_cube(i, data_dir, amps, xyposs, fwhms, angles,
 amps = np.linspace(1.,5.,num=100).astype(float)
 xyposs = np.arange(100,250).astype(float)
 fwhms = np.linspace(2.,8.,num=100).astype(float)
-angles = np.linspace(0,90,num=900).astype(float)
+angles = np.linspace(0,90,num=100).astype(float)
 line_centres = np.linspace(20, 100, num=100).astype(float)
 line_fwhms = np.linspace(3, 10, num=100).astype(float)
 spectral_indexes = np.linspace(-2, 2, num=100).astype(float)

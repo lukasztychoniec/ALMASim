@@ -11,54 +11,112 @@ import multiprocessing
 import time
 import glob
 import argparse
+from skimage.measure import regionprops, label
 
-def make_cube(i, data_dir, amps, xyposs, fwhms, angles, 
-              line_centres, line_fwhms, spectral_indexes, 
-              idxs, z_idxs):
-    number_of_components = random.randint(2,5)
+def threedgaussian(amplitude, spind, chan, center_x, center_y, width_x, width_y, angle, idxs):
+    angle = pi/180. * angle
+    rcen_x = center_x * np.cos(angle) - center_y * np.sin(angle)
+    rcen_y = center_x * np.sin(angle) + center_y * np.cos(angle)
+    xp = idxs[0] * np.cos(angle) - idxs[1] * np.sin(angle)
+    yp = idxs[0] * np.sin(angle) + idxs[1] * np.cos(angle)
+    v1 = 230e9 - (64 * 10e6)
+    v2 = v1+10e6*chan
+
+    g = (10**(np.log10(amplitude) + (spind) * np.log10(v1/v2))) * np.exp(-(((rcen_x-xp)/width_x)**2+((rcen_y-yp)/width_y)**2)/2.)
+    return g
+
+def gaussian(x, amp, cen, fwhm):
+    """
+    Generates a 1D Gaussian given the following input parameters:
+    x: position
+    amp: amplitude
+    fwhm: fwhm
+    level: level
+    """
+    return amp*np.exp(-(x-cen)**2/(2*(fwhm/2.35482)**2))
+
+def generate_component(master_cube, boxes, amp, line_amp, pos_x, pos_y, fwhm_x, fwhm_y, pos_z, fwhm_z, pa, spind):
+    z_idxs = np.arange(0, 128)
+    idxs = np.indices([360, 360])
+    g = gaussian(z_idxs, line_amp, pos_z, fwhm_z)
+    cube = np.zeros((128, 360, 360))
+    for z in range(cube.shape[0]):
+        ts = threedgaussian(amp, spind, z, pos_x, pos_y, fwhm_x, fwhm_y, pa, idxs)
+        cube[z] += ts + g[z] * ts
+    img = np.sum(cube, axis=0)
+    tseg = (img - np.min(img)) / (np.max(img) - np.min(img))
+    std = np.std(tseg)
+    tseg[tseg >= 3 * std] = 1
+    tseg = tseg.astype(int)
+    
+    props = regionprops(label(tseg, connectivity=2))
+    y0, x0, y1, x1 = props[0].bbox
+    boxes.append([y0, x0, y1, x1])
+    master_cube += cube
+    return master_cube
+
+def make_cube(i, data_dir, amps, xyposs, fwhms, angles, line_centres, line_fwhms, spectral_indexes):
+    n_components = random.randint(2,5)
     params = []
-    cube = np.zeros([128, 360, 360])
-    columns = ['ID', 'amplitude', 'x', 'y', 'width_x', 
-               'width_y', 'angle', 'line_peak', 'line_fwhm', 'z', 'sp_idx']
-    for _ in range(number_of_components):
-        # Random choice of line parameters
-        line_amp = np.random.choice(amps)
-        line_cent = np.random.choice(line_centres)
-        line_fwhm = np.random.choice(line_fwhms)
-
-        # Random choice of source parameters
-        amp = np.random.choice(amps)
+    columns = ['ID', 'amp', 'line_amp', 'pa', 'spind',
+            'fwhm_x', 'fwhm_y', 'fwhm_z', 'z']
+    pa = np.random.choice(angles)
+    amp = np.random.choice(amps)
+    line_amp = np.random.choice(amps)
+    limit = amp + line_amp * amp
+    pos_x, pos_y = 180, 180
+    pos_z = np.random.choice(line_centres)
+    fwhm_z = np.random.choice(line_fwhms)
+    fwhm_x = np.random.choice(fwhms)
+    fwhm_y = np.random.choice(fwhms)
+    spind = np.random.choice(spectral_indexes)
+    master_cube = np.zeros((128, 360, 360))
+    boxes = []
+    master_cube = generate_component(master_cube, boxes, amp, line_amp, pos_x, pos_y, fwhm_x, fwhm_y, pos_z, fwhm_z, pa, spind)
+    params.append([int(i), round(amp, 2), round(line_amp, 2), round(pa, 2), round(spind, 2), 
+                           round(fwhm_x, 2), round(fwhm_y, 2), round(fwhm_z, 2), round(pos_z, 2)])
+    n_components = random.randint(2,5)
+    for _ in range(n_components):
         pos_x =  np.random.choice(xyposs)
         pos_y =  np.random.choice(xyposs)
         fwhm_x = np.random.choice(fwhms)
         fwhm_y = np.random.choice(fwhms)
         pa = np.random.choice(angles)
         spidx = np.random.choice(spectral_indexes)
-        for z in range(cube.shape[0]):
-            temp_source =  utils.threedgaussian(amp, spidx, z, pos_x, pos_y, fwhm_x, fwhm_y, pa, idxs)
-            cube[z, :, :] += temp_source
-            cube[z, :, :] += utils.gaussian(z_idxs, line_amp, line_cent, line_fwhm)[z] * temp_source
-
-        params.append([int(i), round(amp, 2), round(pos_x, 2), round(pos_y, 2),
-                       round(fwhm_x, 2), round(fwhm_y, 2), round(pa, 2), round(line_amp, 2),
-                       round(line_fwhm, 2), round(line_cent, 2), round(spidx,2)])
-    hdu = fits.PrimaryHDU(data=cube.astype(np.float32))
-    hdu.writeto(data_dir + '/gauss_cube_' + str(i) + '.fits', overwrite=True)
+        pos_z = np.random.choice(line_centres)
+        fwhm_z = np.random.choice(line_fwhms)
+        temp = 99
+        while temp > limit:
+            amp = np.random.choice(amps)
+            line_amp = np.random.choice(amps)
+            temp = amp + line_amp * amp
+        master_cube = generate_component(master_cube, boxes, amp, line_amp, pos_x, pos_y, fwhm_x, fwhm_y, pos_z, fwhm_z, pa, spind)
+        params.append([int(i), round(amp, 2), round(line_amp, 2), round(pa, 2), round(spind, 2), 
+                           round(fwhm_x, 2), round(fwhm_y, 2), round(fwhm_z, 2), round(pos_z, 2)])
+    hdu = fits.PrimaryHDU(data=master_cube.astype(np.float32))
+    hdu.writeto(data_dir + '/gauss_cube_{}.fits'.format(str(i)), overwrite=True)
+    boxes = np.array(boxes)
     params = np.array(params)
     df = pd.DataFrame(params, columns=columns)
+    xs = boxes[:, 1] + 0.5 * (boxes[:, 3] - boxes[:, 1])
+    ys = boxes[:, 0] + 0.5 * (boxes[:, 2] - boxes[:, 0])
+
+    df['x'] = xs
+    df['y'] = ys
+    df['x0'] = boxes[:, 1]
+    df['y0'] = boxes[:, 0]
+    df['x1'] = boxes[:, 3]
+    df['y1'] = boxes[:, 2]
     df.to_csv(os.path.join(data_dir, 'params_' + str(i) + '.csv'), index=False)
 
 
-
-amps = np.linspace(1.,5.,num=100).astype(float)
 xyposs = np.arange(100,250).astype(float)
 fwhms = np.linspace(2.,8.,num=100).astype(float)
 angles = np.linspace(0,90,num=100).astype(float)
-line_centres = np.linspace(20, 100, num=100).astype(float)
+line_centres = np.arange(10, 110).astype(float)
 line_fwhms = np.linspace(3, 10, num=100).astype(float)
 spectral_indexes = np.linspace(-2, 2, num=100).astype(float)
-idxs = np.indices([360, 360])
-z_idxs = np.linspace(0, 128, 128)
+amps = np.arange(1, 5, 0.1)
 
 parser =argparse.ArgumentParser()
 parser.add_argument("data_dir", type=str, 
@@ -87,7 +145,7 @@ if __name__ == '__main__':
     print('Generating Model Cubes ...')
     Parallel(n_cores)(delayed(make_cube)(i, data_dir,
              amps, xyposs, fwhms, angles, line_centres, 
-             line_fwhms, spectral_indexes, idxs, z_idxs) for i in tqdm(range(n)))
+             line_fwhms, spectral_indexes) for i in tqdm(range(n)))
     print('Cubes Generated, aggregating parameters.csv')
     files = os.path.join(data_dir, 'params_*.csv')
     files = glob.glob(files)

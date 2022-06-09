@@ -1,38 +1,53 @@
-from casatasks import simalma, exportfits
 import os
 import sys
 import glob
 import time
 import argparse
 import numpy as np
-
+from casatasks import simobserve, tclean, exportfits
 def generate_sims(i, input_dir, output_dir):
     filename = os.path.join(input_dir, "gauss_cube_" + str(i) + ".fits")
     project = 'sim'
-    simalma(
-        project=project,
-        dryrun=False,
+    antennalist = "~/alma_cycle9_configuration_files/alma.cycle9.3.cfg"
+    simobserve(
+        project=project, 
         skymodel=filename,
         inbright="0.001Jy/pix",
         indirection="J2000 03h59m59.96s -34d59m59.50s",
         incell="0.1arcsec",
         incenter="230GHz",
         inwidth="10MHz",
-        antennalist=["alma.cycle5.3.cfg"],
-        totaltime="720s",
-        mapsize="0",
-        pwv=0.8,
+        setpointings=True,
+        integration="10s",
+        direction="J2000 03h59m59.96s -34d59m59.50s",
+        mapsize=["10arcsec"],
+        maptype="hexagonal",
+        obsmode="int",
+        antennalist=antennalist,
+        totaltime="2400s",
+        thermalnoise="tsys-atm",
+        user_pwv=0.8,
+        seed=11111,
+        graphics="none",
+        verbose=False,
+        overwrite=True)
+
+    tclean(
+        vis=os.path.join(project, "{}.alma.cycle9.3.noisy.ms".format(project)),
+        imagename=project+'/{}.alma.cycle9.3'.format(project),
+        imsize=[360, 360],
+        cell=["0.1arcsec"],
+        phasecenter="",
+        specmode="cube",
         niter=0,
-        imsize=0,
-        overwrite=True,
-        verbose=True
-    )
-    exportfits(imagename=project+'/sim.alma.cycle5.3.noisy.image', 
-               fitsimage=project+'/gauss_cube_sim_'+ str(i) +'.dirty.fits')
-    exportfits(imagename=project+'/sim.alma.cycle5.3.skymodel', 
-               fitsimage=project+'/gauss_cube_sim_'+ str(i) +'.skymodel.fits')
-    os.system('cp ' + project + '/gauss_cube_sim_'+ str(i) +'.dirty.fits {}/'.format(output_dir))
-    os.system('cp ' + project + '/gauss_cube_sim_'+ str(i) +'.skymodel.fits {}/'.format(output_dir))
+        fastnoise=False,
+        calcpsf=True,
+        pbcor=False
+        )
+    exportfits(imagename=project+'/{}.alma.cycle9.3.image'.format(project), 
+           fitsimage=output_dir + "/dirty_cube_" + str(i) +".fits")
+    exportfits(imagename=project+'/{}.alma.cycle9.3.skymodel'.format(project), 
+           fitsimage=output_dir + "/clean_cube_" + str(i) +".fits")
     os.system('rm -r {}'.format(project))
 
 parser =argparse.ArgumentParser()
